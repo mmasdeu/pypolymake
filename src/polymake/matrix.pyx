@@ -10,9 +10,9 @@ from libc.stdlib cimport malloc, free
 from cygmp.types cimport mpz_t, mpq_t
 from cygmp.mpq cimport *
 
-from .defs cimport pm_MatrixRational, pm_Rational, pm_Integer, pm_VectorInteger, get_element
+from .defs cimport pm_MatrixRational, pm_IncidenceMatrix, pm_Rational, pm_Integer, pm_VectorInteger, get_element
 
-from .number cimport Rational
+from .number cimport Rational, Integer
 from .number import get_num_den
 
 cdef class MatrixRational:
@@ -26,6 +26,33 @@ cdef class MatrixRational:
 
         cdef Rational ans = Rational.__new__(Rational)
         ans.pm_obj.set_mpq_t(get_element(self.pm_obj, i, j).get_rep())
+        return ans
+
+    def __repr__(self):
+        cdef Py_ssize_t nrows, ncols, i, j
+        nrows = self.pm_obj.rows()
+        ncols = self.pm_obj.cols()
+
+        rows = [[str(self[i,j]) for j in range(ncols)] for i in range(nrows)]
+        col_sizes = [max(len(rows[i][j]) for i in range(nrows)) for j in range(ncols)]
+
+        line_format = "[ " +  \
+                " ".join("{{:{width}}}".format(width=t) for t in col_sizes) + \
+                      "]"
+
+        return "\n".join(line_format.format(*row) for row in rows)
+
+cdef class IncidenceMatrix:
+    def __getitem__(self, elt):
+        cdef Py_ssize_t nrows, ncols, i, j
+        nrows = self.pm_obj.rows()
+        ncols = self.pm_obj.cols()
+        i,j = elt
+        if not (0 <= i < nrows) or not (0 <= j < ncols):
+            raise IndexError("matrix index out of range")
+
+        cdef Integer ans = Integer.__new__(Integer)
+        ans.pm_obj.set((<pm_Integer>(get_element(self.pm_obj, i, j))).get_rep()) # DEBUG
         return ans
 
     def __repr__(self):

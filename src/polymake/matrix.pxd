@@ -5,9 +5,14 @@
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-from defs cimport pm_MatrixRational
+from defs cimport pm_MatrixRational, pm_IncidenceMatrix
 
 cdef class MatrixRational:
     cdef pm_MatrixRational pm_obj
 
+cdef class IncidenceMatrix:
+    cdef pm_IncidenceMatrix pm_obj
+
+# cdef pm_IncidenceMatrix* incmat_to_pm(int nr, int nc, list mat)
 cdef pm_MatrixRational* mat_to_pm(int nr, int nc, list mat)
+

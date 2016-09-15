@@ -1,20 +1,3 @@
-r"""
-Structure of polymake objects and mapping to Python objects
-
-Up to now we registered around 20 polymake types (e.g. "bool", "int",
-"Vector<Integer>", etc). To each objects is attached a list of properties that
-are hardcoded in dictionaries. The keys in the dictionary are the property names
-and the values are the type of the property.
-
-To each type is associated a handler that will build the corresponding Python
-object. The generic one is just a generic wrapper over perl object. This can be
-overriden (e.g. you might want integer properties to output integers from gmpy).
-
-.. TODO::
-
-    Ideally the structure of polymake objects should be computed dynamically...
-    However, it is not easy to achieve.
-"""
 ###############################################################################
 #       Copyright (C) 2016      Vincent Delecroix <vincent.delecroix@labri.fr>
 #
@@ -24,12 +7,12 @@ overriden (e.g. you might want integer properties to output integers from gmpy).
 ###############################################################################
 
 from .defs cimport (pm_PerlObject, new_PerlObject_from_PerlObject,
-        pm_get_PerlObject, pm_MatrixRational, pm_VectorInteger, pm_Integer,
-        pm_Rational, pm_get_Integer, pm_get_Rational, pm_get_MatrixRational,
+        pm_get_PerlObject, pm_MatrixRational, pm_IncidenceMatrix, pm_VectorInteger, pm_Integer,
+        pm_Rational, pm_get_Integer, pm_get_Rational, pm_get_MatrixRational, pm_get_IncidenceMatrix,
         pm_get_VectorInteger, pm_get_PerlObject)
 
 from .perl_object cimport PerlObject, wrap_perl_object
-from .matrix cimport MatrixRational
+from .matrix cimport MatrixRational, IncidenceMatrix
 from .number cimport Integer, Rational
 from .vector cimport VectorInteger
 
@@ -53,6 +36,9 @@ cdef pm_type_matrix_float = 'Matrix<Float, NonSymmetric>'
 cdef pm_type_matrix_integer = 'Matrix<Integer, NonSymmetric>'
 cdef pm_type_matrix_rational = 'Matrix<Rational, NonSymmetric>'
 cdef pm_type_sparse_matrix_rational = 'SparseMatrix<Rational, NonSymmetric>'
+
+cdef pm_type_incidence_matrix_nonsymmetric = 'IncidenceMatrix<NonSymmetric>'
+cdef pm_type_incidence_matrix_symmetric = 'IncidenceMatrix<Symmetric>'
 
 cdef pm_type_polytope_rational = 'Polytope<Rational>'
 cdef pm_type_quadratic_extension = 'Polytope<QuadraticExtension<Rational>>'
@@ -260,7 +246,7 @@ type_properties[pm_type_polytope_rational] = {
     'VERTEX_NORMALS'                     : pm_type_unknown,
     'VERTEX_SIZES'                       : pm_type_unknown,
     'VERTICES'                           : pm_type_matrix_rational,
-    'VERTICES_IN_FACETS'                 : pm_type_unknown,
+    'VERTICES_IN_FACETS'                 : pm_type_incidence_matrix_nonsymmetric,
     'VERTICES_IN_INEQUALITIES'           : pm_type_unknown,
     'VERY_AMPLE'                         : pm_type_unknown,
     'VIF_CYCLIC_NORMAL'                  : pm_type_unknown,
@@ -345,6 +331,12 @@ def handler_matrix_rational(perl_object, prop):
     pm_get_MatrixRational(po.give(prop), ans.pm_obj)
     return ans
 
+def handler_incidence_matrix(perl_object, prop):
+    cdef pm_PerlObject * po = (<PerlObject?> perl_object).pm_obj
+    cdef IncidenceMatrix ans = IncidenceMatrix.__new__(IncidenceMatrix)
+    pm_get_IncidenceMatrix(po.give(prop), ans.pm_obj)
+    return ans
+
 cdef dict handlers = {
     pm_type_unknown          : handler_generic,
 
@@ -366,6 +358,10 @@ cdef dict handlers = {
     pm_type_matrix_integer         : handler_generic,
     pm_type_matrix_rational        : handler_matrix_rational,
     pm_type_sparse_matrix_rational : handler_matrix_rational,
+
+    # incidence matrices
+    pm_type_incidence_matrix_nonsymmetric : handler_incidence_matrix,
+    pm_type_incidence_matrix_symmetric : handler_incidence_matrix,
 
     # others
     pm_type_polytope_rational: handler_generic,

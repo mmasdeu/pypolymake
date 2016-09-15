@@ -34,6 +34,9 @@ cdef pm_type_matrix_integer
 cdef pm_type_matrix_rational
 cdef pm_type_sparse_matrix_rational
 
+cdef pm_type_incidence_matrix_nonsymmetric
+cdef pm_type_incidence_matrix_symmetric
+
 cdef pm_type_polytope_rational
 cdef pm_type_quadratic_extension
 cdef pm_type_graph_undirected

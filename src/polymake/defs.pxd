@@ -161,6 +161,24 @@ cdef extern from "polymake/Matrix.h" namespace 'polymake':
     void pm_get_VectorInteger "WRAP_IN" (pm_PerlPropertyValue, pm_VectorInteger) except +ValueError
     void pm_get_PerlObject "WRAP_IN" (pm_PerlPropertyValue, pm_PerlObject) except +ValueError
 
+cdef extern from "polymake/IncidenceMatrix.h" namespace 'polymake':
+    cdef cppclass pm_IncidenceMatrix "IncidenceMatrix<NonSymmetric>":
+        pm_IncidenceMatrix()
+        pm_IncidenceMatrix(int nr, int nc)
+        void assign(int r, int c, pm_Rational val)
+        pm_IncidenceMatrix operator|(pm_IncidenceMatrix)
+        Py_ssize_t rows()
+        Py_ssize_t cols()
+
+    # WRAP_CALL(t,i,j) -> t(i,j)
+    pm_Integer get_element "WRAP_CALL"(pm_IncidenceMatrix, int i, int j)
+
+    # WRAP_OUT(x,y) x<<y
+    void pm_assign_IncidenceMatrix "WRAP_OUT" (pm_PerlPropertyValue, pm_IncidenceMatrix)
+
+    # WRAP_IN(x,y) x>>y
+    void pm_get_IncidenceMatrix "WRAP_IN" (pm_PerlPropertyValue, pm_IncidenceMatrix) except +ValueError
+
 cdef extern from "polymake/Vector.h" namespace 'polymake':
     cdef cppclass pm_VectorInteger "Vector<Integer>":
         pm_VectorInteger()
